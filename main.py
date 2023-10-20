@@ -26,7 +26,6 @@ def tokenize_string(text):
     tokens = 2
     i = 0
     while i < len(text):
-        #print(text[i:i+4])
         characters.append((text[i:i+tokens]))
         i = i + tokens
     return set(characters)
