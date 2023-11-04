@@ -20,13 +20,12 @@ The maker promises, with empiric experiments that a 80% Jaccard distance indicat
 
 Good ol' ssdeep.
 
-Originally from the piecewise hashing of Harbour Nicholas. Dcfldd. Defense Computer Forensics Lab. Available from: http://dcfldd.sourceforge.net/; 2002.
+Originally from the piecewise hashing of Harbour Nicholas. Dcfldd. Defense Computer Forensics Lab. Available from: <http://dcfldd.sourceforge.net/>; 2002.
 (Harbour, 2002)
 
 Trigger points are used in place of fixed-sized blocks in **CTPH**. Whenever a particular trigger point is reached, the algorithm determines the hash value of the current data point. The trigger point criteria are selected such that when the amount of the input data increases, the final hash value does not rise irrationally. For instance, the trigger point for ssdeep depends on the amount of the input data because it requires 64 pieces per input file. The edit distance method is used by ssdeep to compare two files: The similarity between the files decreases with the number of steps required to convert one ssdeep hash value to another.[1]
 
 [1] J. Kornblum, “Identifying almost identical files using context triggered piecewise hashing,” Digital Investigation, vol. 3, pp. 91–97, Sep. 2006, doi: 10.1016/j.diin.2006.06.015.
-
 
 ## TLSH - Trend Micro Locality Sensitive Hash
 
