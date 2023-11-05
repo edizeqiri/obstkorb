@@ -7,18 +7,17 @@ def init():
     """
     client = pymongo.MongoClient("mongodb://localhost:27017/")
 
-    fuzzies = ["sdhash", "ssdeep", "tlsh", "machoc"]
-
     # Create db and coll if does not exist
     if "FuzzyHashing" not in client.list_database_names():
         db = client["FuzzyHashing"]
-        for fuzz in fuzzies:
-            if fuzz not in db.list_collection_names():
-                db.create_collection(fuzz)
+        if "families" not in db.list_collection_names():
+            db.create_collection("families")
+        if "samples" not in db.list_collection_names():
+            db.create_collection("samples")
     return client["FuzzyHashing"]
 
 
-def insert(client, coll, data):
+def insert_one_sample(client, coll, data):
     """
     Insert data into collection
     """
@@ -30,6 +29,7 @@ def insert(client, coll, data):
         return False
 
     client[coll].insert_one(data)
+    return True
 
 
 def find(client, coll, query):
