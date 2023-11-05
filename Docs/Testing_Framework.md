@@ -36,9 +36,7 @@ I will create 2 collections in MongoDB. One with the hashes of all the fuzzy has
     "Machoc": {
       "hash_time" : "Time it took to hash the sample",
       "fuzzy_hash": "Fuzzy hash of the sample",
-      "prediction": "Prediction of the sample"} ,
-
-  
+      "prediction": "Prediction of the sample"}
 }
 ```
 
@@ -46,6 +44,6 @@ I will create 2 collections in MongoDB. One with the hashes of all the fuzzy has
 
 1. VX_Underground Dataset of 150GB compressed classified Malware
 2. Scicore Dataset of compiled binaries (waiting on confirmation)
-3. Public Datasets
+3. Public Datasets (Work in progress)
 
 

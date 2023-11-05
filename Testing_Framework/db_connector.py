@@ -24,22 +24,19 @@ def insert_one_sample(client, coll, data):
     if coll not in client.list_collection_names():
         print("Collection does not exist")
         return False
-    if data["families"] is None or data["SHA256"] is None or data["fuzzy_hashes"] is None:
-        print(f"Data is not right: {data}")
-        return False
 
     client[coll].insert_one(data)
     return True
 
 
-def find(client, coll, query):
+def find(client, query):
     """
     Find data in collection
     """
-    if coll not in client.list_collection_names():
-        print("Collection does not exist")
+    if client["families"] not in client.list_collection_names():
+        print("Collection does not exist! Run init() first")
         return False
-    return client[coll].find(query)
+    return client["families"].find(query)
 
 
 # debug

@@ -1,10 +1,8 @@
-# Per family
-#   go into the family folder
-#   for every file fill the dict with the paramters from my documentation
-#   return the dict
 import hashlib
 import os
 import time
+
+import requests
 import ssdeep
 import tlsh
 import machoc
@@ -24,13 +22,12 @@ def get_fuzz_and_time_of_hasher(hasher, file_path):
 
 
 def predictor(hasher, fuzz, client):
-    result = mongo.find(client, hasher, {"fuzzy_hash": fuzz})
+    result = mongo.find(client, hasher, {hasher: {"fuzzy_hash": fuzz}})
     return result.family
 
 
 def get_file_hashes(family_path, client):
     for file in os.listdir(family_path):
-        # TODO: check "Samples" folder
 
         # TODO: implement hashers
         # Get file information
@@ -48,8 +45,14 @@ def get_file_hashes(family_path, client):
             sample_data[hasher] = {hasher: fuzzy_hash, "hash_time": hash_time}
 
         # Insert into db
-        mongo.insert_one_sample(client, sample_data)
+        mongo.insert_one_sample(client, "families", sample_data)
     return True
+
+
+def log_me(data):
+    if requests.get("http://portainer:2398/") == 200:
+        requests.post("http://portainer:2398/dev", data=data)
+
 
 
 if __name__ == '__main__':
@@ -59,9 +62,10 @@ if __name__ == '__main__':
 
     db = mongo.init()
     family_path = sys.argv[1]
-    amount = [1, 2, 3, 4, 5]
 
-    for family in family_path:
-        sample_data = get_file_hashes(family_path, amount)
+    for i, family in enumerate(family_path):
+        log_me(f"{family} is being processed. {i}/{len(family_path)}")
+        sample_data = get_file_hashes(family_path, db)
 
-    print(sample_data)
+    log_me(f"Finished processing {len(family_path)} families")
+    print("We have {} families in the database".format(len(db.list_collection_names())))
