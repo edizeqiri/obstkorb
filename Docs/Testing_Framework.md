@@ -15,6 +15,8 @@ This document will display how the testing should be done. Work in progress, the
 I will create 4 collections in MongoDB:
 The schema for each hasher:
 
+| sdhash | ssdeep | tlsh | machoc |
+
 ```json
 {
     "family": "Name of the family",

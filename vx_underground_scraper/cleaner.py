@@ -69,5 +69,6 @@ def main():
         list_of_zips = [zippi.strip() for zippi in list_of_zips]
         multiculti(list_of_zips)
 
+
 if __name__ == '__main__':
     main()
