@@ -50,9 +50,8 @@ def get_file_hashes(family_path, client):
 
 
 def log_me(data):
-    if requests.get("http://portainer:2398/") == 200:
-        requests.post("http://portainer:2398/dev", data=data)
-
+    if requests.get("https://ntfy.airfryer.rocks/") == 200:
+        requests.post("https://ntfy.airfryer.rocks/dev", data=data)
 
 
 if __name__ == '__main__':
