@@ -1,3 +1,7 @@
+Bachelor Thesis (15 CP): A Study of Malware Detection Techniques for HPC Application Recognition
+Start date: 18.10.2023
+End date: 02.02.2024
+
 # What I did
 
 # What I will do
