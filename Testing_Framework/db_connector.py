@@ -41,6 +41,6 @@ def find(client, query):
 
 # debug
 
-cursor = init()
+#cursor = init()
 
-print(cursor.list_collection_names())
+#print(cursor.list_collection_names())

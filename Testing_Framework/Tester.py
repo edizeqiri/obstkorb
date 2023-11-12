@@ -5,31 +5,36 @@ import time
 import requests
 import ssdeep
 import tlsh
-import machoc
+import Playground.machoke as machoke
 import sdhash
 import db_connector as mongo
 import json
 import sys
+from icecream import ic
+ic.configureOutput(includeContext=True)
 
-fuzzy_hashers = ["ssdeep", "tlsh", "machoc", "sdhash"]
+
+
+# TODO: implement Machoke
+fuzzy_hashers = [ssdeep, tlsh, sdhash]
+
 
 
 def get_fuzz_and_time_of_hasher(hasher, file_path):
     start_time = time.time()
-    fuzz = hasher(open(file_path, 'rb').read()).hexdigest()
+    fuzz = hasher(open(file_path, 'rb').read())
     end_time = time.time()
-    return (fuzz, end_time - start_time)
+    return ic((fuzz, end_time - start_time))
 
 
-def predictor(hasher, fuzz, client):
+def get_hash(hasher, fuzz, client):
     result = mongo.find(client, hasher, {hasher: {"fuzzy_hash": fuzz}})
     return result.family
 
 
-def get_file_hashes(family_path, client):
+def insert_family_hashes(family_path, client):
     for file in os.listdir(family_path):
 
-        # TODO: implement hashers
         # Get file information
         sample_data = {"family": family_path.split("/")[-1],
                        "SHA256": hashlib.sha256(open(family_path + "/" + file, 'rb').read()).hexdigest(),
@@ -39,7 +44,7 @@ def get_file_hashes(family_path, client):
                        "tlsh": "TLSH hash",
                        "machoc": "Machoc hash"}
 
-        # Get fuzzy hashes
+        # Get fuzzy hashes and time
         for hasher in fuzzy_hashers:
             fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, family_path + "/" + file)
             sample_data[hasher] = {hasher: fuzzy_hash, "hash_time": hash_time}
@@ -53,18 +58,37 @@ def log_me(data):
     if requests.get("https://ntfy.airfryer.rocks/") == 200:
         requests.post("https://ntfy.airfryer.rocks/dev", data=data)
 
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: python3 Tester.py <path_to_families> ")
-        exit(1)
-
+def init(family_path):
     db = mongo.init()
-    family_path = sys.argv[1]
-
+    log_me("Starting init phase")
     for i, family in enumerate(family_path):
         log_me(f"{family} is being processed. {i}/{len(family_path)}")
-        sample_data = get_file_hashes(family_path, db)
+        insert_family_hashes(family_path, db)
 
     log_me(f"Finished processing {len(family_path)} families")
     print("We have {} families in the database".format(len(db.list_collection_names())))
+
+def test():
+    Rat9002_1 = open("Samples/006c74c6813a6efeabea860b2718ed548eed216a319d76ceb178fc38cba458d1", 'rb').read()
+    Rat9002_1 = ic(tlsh.hash(Rat9002_1))
+    Rat9002_2 = open("Samples/0414ffdf9dcf32061cc57d0b54bf4410c1c588258c12615988e3ce8cb0cf4fb4", 'rb').read()
+    Rat9002_2 = ic(tlsh.hash(Rat9002_2))
+    AgentTesla = open("Samples/0f9e27ec1ed021fd7375ca46f233c06b354d12d57aed44132208cd9308bfee11", 'rb').read()
+    AgentTesla = ic(tlsh.hash(AgentTesla))
+    ic(tlsh.diff(Rat9002_1, Rat9002_2))
+    ic(tlsh.diff(Rat9002_1, AgentTesla))
+    ic(tlsh.diff(Rat9002_2, AgentTesla))
+
+if __name__ == '__main__':
+    # if len(sys.argv) < 3:
+    #     print("Usage: python3 Tester.py <path_to_families> <True/False> for init phase") #make this a flag
+    #     exit(1)
+    #
+    #
+    # family_path = sys.argv[1]
+    # if sys.argv[2] == "True":
+    #     init(family_path)
+    #
+
+    test()
+    get_fuzz_and_time_of_hasher(tlsh.hash, "Samples/006c74c6813a6efeabea860b2718ed548eed216a319d76ceb178fc38cba458d1")

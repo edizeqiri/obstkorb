@@ -33,7 +33,7 @@ I will create 2 collections in MongoDB. One with the hashes of all the fuzzy has
       "hash_time" : "Time it took to hash the sample",
       "fuzzy_hash": "Fuzzy hash of the sample",
       "prediction": "Prediction of the sample"} ,
-    "Machoc": {
+    "Machoke": {
       "hash_time" : "Time it took to hash the sample",
       "fuzzy_hash": "Fuzzy hash of the sample",
       "prediction": "Prediction of the sample"}
