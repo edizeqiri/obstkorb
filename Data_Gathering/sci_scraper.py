@@ -20,12 +20,13 @@ with open(folders_file, 'r') as file:
 # Loop through each folder and execute SCP command
 for folder in folders:
     remote_path = f'{remote_base_path}{folder}'
-    local_path = f'{local_target_directory}/{folder}'
+    local_path = f'{local_target_directory}/{folder}'.replace('/', os.sep)
     scp_command = f'scp -r {remote_user}@{remote_host}:{remote_path} {local_path}'
+
 
     try:
         ic(scp_command)
-        #subprocess.run(scp_command, shell=True, check=True)
+        subprocess.run(scp_command, shell=True, check=True)
         print(f'Successfully downloaded {folder}')
     except subprocess.CalledProcessError as e:
         print(f'Error downloading {folder}: {e}')
