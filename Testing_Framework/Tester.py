@@ -3,26 +3,25 @@ import os
 import time
 
 import requests
-import ssdeep
+#import ssdeep
 import tlsh
-import Playground.machoke as machoke
-import sdhash
+#import Playground.machoke as machoke
+
 import db_connector as mongo
-import json
-import sys
+
 from icecream import ic
 ic.configureOutput(includeContext=True)
 
 
 
 # TODO: implement Machoke
-fuzzy_hashers = [ssdeep, tlsh, sdhash]
+fuzzy_hashers = [tlsh]
 
 
 
-def get_fuzz_and_time_of_hasher(hasher, file_path):
+def get_fuzz_and_time_of_hasher(hasher, file_handler):
     start_time = time.time()
-    fuzz = hasher(open(file_path, 'rb').read())
+    fuzz = hasher.hash(file_handler)
     end_time = time.time()
     return ic((fuzz, end_time - start_time))
 
@@ -33,24 +32,37 @@ def get_hash(hasher, fuzz, client):
 
 
 def insert_family_hashes(family_path, client):
-    for file in os.listdir(family_path):
+    for file in os.listdir(family_path.replace("/", os.sep)):
+        # if file has .7z ending skip
+        if file.endswith(".7z"):
+            continue
 
         # Get file information
-        sample_data = {"family": family_path.split("/")[-1],
-                       "SHA256": hashlib.sha256(open(family_path + "/" + file, 'rb').read()).hexdigest(),
-                       "file_size": os.path.getsize(family_path + "/" + file),
-                       "ssdeep": "ssdeep hash",
-                       "sdhash": "sdhash hash",
-                       "tlsh": "TLSH hash",
-                       "machoc": "Machoc hash"}
+        file_ = (family_path + "/" + file).replace("/", os.sep)
 
-        # Get fuzzy hashes and time
-        for hasher in fuzzy_hashers:
-            fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, family_path + "/" + file)
-            sample_data[hasher] = {hasher: fuzzy_hash, "hash_time": hash_time}
+        try:
+            file_handler_ = open(file_, "rb")
+            file_handler = file_handler_.read()
+            sample_data = {"family": family_path.split("/")[-1],
+                           "SHA256": hashlib.sha256(file_handler).hexdigest(),
+                           "file_size": os.path.getsize(file_),
+                           "ssdeep": "ssdeep hash",
+                           "sdhash": "sdhash hash",
+                           "tlsh": "TLSH hash",
+                           "machoc": "Machoc hash"}
 
-        # Insert into db
-        mongo.insert_one_sample(client, "families", sample_data)
+            # Get fuzzy hashes and time
+            for hasher in fuzzy_hashers:
+                fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, file_handler)
+                sample_data[hasher.__name__] = {hasher.__name__: fuzzy_hash, "hash_time": hash_time}
+            file_handler_.close()
+            # Insert into db
+            mongo.insert_one_sample(client, "families", sample_data)
+        except Exception:
+            print(f"This is some gaga: {file_}")
+            break
+
+
     return True
 
 
@@ -61,9 +73,9 @@ def log_me(data):
 def init(family_path):
     db = mongo.init()
     log_me("Starting init phase")
-    for i, family in enumerate(family_path):
+    for i, family in enumerate(os.listdir(family_path)):
         log_me(f"{family} is being processed. {i}/{len(family_path)}")
-        insert_family_hashes(family_path, db)
+        insert_family_hashes((family_path + "/" + family).replace("/", os.sep), db)
 
     log_me(f"Finished processing {len(family_path)} families")
     print("We have {} families in the database".format(len(db.list_collection_names())))
@@ -90,5 +102,5 @@ if __name__ == '__main__':
     #     init(family_path)
     #
 
-    test()
-    get_fuzz_and_time_of_hasher(tlsh.hash, "Samples/006c74c6813a6efeabea860b2718ed548eed216a319d76ceb178fc38cba458d1")
+    #test()
+    init("F:\\vx")
