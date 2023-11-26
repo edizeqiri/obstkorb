@@ -12,6 +12,7 @@ import db_connector as mongo
 from icecream import ic
 ic.configureOutput(includeContext=True)
 
+starti = ic(time.time())
 
 
 # TODO: implement Machoke
@@ -23,7 +24,7 @@ def get_fuzz_and_time_of_hasher(hasher, file_handler):
     start_time = time.time()
     fuzz = hasher.hash(file_handler)
     end_time = time.time()
-    return ic((fuzz, end_time - start_time))
+    return fuzz, end_time - start_time
 
 
 def get_hash(hasher, fuzz, client):
@@ -67,7 +68,7 @@ def insert_family_hashes(family_path, client):
 
 
 def log_me(data):
-    if requests.get("https://ntfy.airfryer.rocks/") == 200:
+    if requests.get("https://ntfy.airfryer.rocks/").status_code == 200:
         requests.post("https://ntfy.airfryer.rocks/dev", data=data)
 
 def init(family_path):
@@ -104,3 +105,4 @@ if __name__ == '__main__':
 
     #test()
     init("F:\\vx")
+    ic(time.time() - starti)
