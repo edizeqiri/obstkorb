@@ -3,20 +3,20 @@ import os
 import time
 
 import requests
-#import ssdeep
+import ssdeep
 import tlsh
-#import Playground.machoke as machoke
-
+import Playground.machoke as machoke
+import sdhash
 import db_connector as mongo
-
+import json
+import sys
 from icecream import ic
 ic.configureOutput(includeContext=True)
 
-starti = ic(time.time())
 
 
 # TODO: implement Machoke
-fuzzy_hashers = [tlsh]
+fuzzy_hashers = [ssdeep, tlsh]
 
 
 
@@ -59,9 +59,10 @@ def insert_family_hashes(family_path, client):
             file_handler_.close()
             # Insert into db
             mongo.insert_one_sample(client, "families", sample_data)
-        except Exception:
+        except Exception as e:
             print(f"This is some gaga: {file_}")
-            break
+            print(f"The Exception is: {e}")
+            continue
 
 
     return True
@@ -72,9 +73,11 @@ def log_me(data):
         requests.post("https://ntfy.airfryer.rocks/dev", data=data)
 
 def init(family_path):
-    db = mongo.init()
+    db = mongo.init("portainer", port=32768)
     log_me("Starting init phase")
     for i, family in enumerate(os.listdir(family_path)):
+        if family.startswith("."):
+            continue
         log_me(f"{family} is being processed. {i}/{len(family_path)}")
         insert_family_hashes((family_path + "/" + family).replace("/", os.sep), db)
 
@@ -103,6 +106,4 @@ if __name__ == '__main__':
     #     init(family_path)
     #
 
-    #test()
-    init("F:\\vx")
-    ic(time.time() - starti)
+    init("/Volumes/vx")

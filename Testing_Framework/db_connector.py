@@ -1,11 +1,11 @@
 import pymongo
 
 
-def init():
+def init(ip, port=27017):
     """
     Returns db object
     """
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    client = pymongo.MongoClient(f"mongodb://{ip}:{port}/")
 
     # Create db and coll if does not exist
     if "FuzzyHashing" not in client.list_database_names():
@@ -38,9 +38,3 @@ def find(client, query):
         return False
     return client["families"].find(query)
 
-
-# debug
-
-#cursor = init()
-
-#print(cursor.list_collection_names())
