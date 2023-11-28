@@ -14,6 +14,10 @@ def init(ip, port=27017):
             db.create_collection("families")
         if "samples" not in db.list_collection_names():
             db.create_collection("samples")
+        if "scicore" not in db.list_collection_names():
+            db.create_collection("scicore")
+        if "scicore_samples" not in db.list_collection_names():
+            db.create_collection("scicore_samples")
     return client["FuzzyHashing"]
 
 

@@ -25,4 +25,5 @@ I saved the result to the Data_Gathering/directories.txt file. With the list I n
 For example, in the folder nodejs I am only interested in the binary node and not npm or others. Therefore, the challenge is to find the longest matching substring.
 The python script lon.py was created for this purpose. It finds all the relevant binaries and generates another list called sci_bin_list.txt.
 
-This list allows me to generate an archive with the correct folder/file architecture needed by Obstkorb. The python script for this is TODO
+This list allows me to generate an archive with the correct folder/file architecture needed by Obstkorb. The python script for this is sci_cp_bins.py
+
