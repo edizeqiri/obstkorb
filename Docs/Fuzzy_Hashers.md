@@ -35,7 +35,13 @@ This gets done by using buckets and filtering data based on their quartile point
 The header conists mostly of the checksum of the byte string and the quartiles.
 The body however consists of a statistial representation of the buckets. The algorithm checks for each index of the buckets in which quartile the bucket is in and encodes the result.
 
-To measure the distance between two digests, TSLH uses an approximation of the hamming distance.[2]
+To measure the distance between two digests, TSLH uses an approximation of the hamming distance.
+
+### Discussion
+
+The paper did most of the testing with text samples consisting of natural language instead of binaries. To think about.
+
+[2]
 
 [2] J. Oliver, C. Cheng, and Y. Chen, “TLSH -- A Locality Sensitive Hash,” in 2013 Fourth Cybercrime and Trustworthy Computing Workshop, Sydney NSW, Australia: IEEE, Nov. 2013, pp. 7–13. doi: 10.1109/CTC.2013.9.
 
