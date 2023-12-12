@@ -1,12 +1,11 @@
 import hashlib
 import os
 import time
-
+import subprocess
 import requests
 import ssdeep
 import tlsh
 import Playground.machoke as machoke
-import sdhash
 import Mongo_Connector as mongo
 import json
 import sys
@@ -14,12 +13,30 @@ from icecream import ic
 
 ic.configureOutput(includeContext=True)
 
-# TODO: implement Machoke
-fuzzy_hashers = [ssdeep, tlsh]
+def machoke_hash(sample) -> str:
+
+    __name__ = "machoke"
+    # Path to the script you want to run
+    script_path = 'Machoke.py'
+
+    # Combining script path and parameters in a single command
+    command = ['python3', script_path] + sample
+
+    # Running the script with parameters and capturing the output
+    result = subprocess.run(command, stdout=subprocess.PIPE, text=True)
+
+    # The output is stored in result.stdout
+    output = result.stdout
+
+    return output
+
+fuzzy_hashers = [ssdeep, tlsh, machoke_hash]
 i = 0
 
 def get_fuzz_and_time_of_hasher(hasher, file_handler):
     start_time = time.time()
+    if hasher.__name__ == "machoke":
+        fuzz = hasher(file_handler)
     fuzz = hasher.hash(file_handler)
     end_time = time.time()
     return fuzz, end_time - start_time
@@ -49,7 +66,6 @@ def insert_family_hashes(family_path, client, schema):
                      "SHA256": hashlib.sha256(file_handler).hexdigest(),
                      "file_size": os.path.getsize(file_),
                      "ssdeep": "ssdeep hash",
-                     "sdhash": "sdhash hash",
                      "tlsh": "TLSH hash",
                      "machoc": "Machoc hash"}
 
