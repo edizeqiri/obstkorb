@@ -230,6 +230,7 @@ def check_if_machoke_exist(file, output_file):
         for line in open(output_file).read().strip().split("\n"):
             if line[-len(file):] == file:
                 return True
+    print("%s: Is not a Machoke file"%file)        
     return False
 
 if __name__ == "__main__":

@@ -3,9 +3,8 @@ import os
 import time
 import subprocess
 import requests
-import ssdeep
-import tlsh
-import Playground.machoke as machoke
+#import ssdeep
+#import tlsh
 import Mongo_Connector as mongo
 import json
 import sys
@@ -17,7 +16,7 @@ ic.configureOutput(includeContext=True)
 def machoke_hash(sample) -> str:
     __name__ = "machoke"
     # Path to the script you want to run
-    script_path = 'Machoke.py'
+    script_path = '../Playground/machoke.py'
 
     # Combining script path and parameters in a single command
     command = ['python3', script_path, sample]
@@ -31,7 +30,7 @@ def machoke_hash(sample) -> str:
     return output
 
 
-fuzzy_hashers = [ssdeep, tlsh, machoke_hash]
+fuzzy_hashers = [machoke_hash]
 i = 0
 
 
@@ -126,4 +125,4 @@ if __name__ == '__main__':
     #
 
     # init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    ic(machoke_hash("0f9e27ec1ed021fd7375ca46f233c06b354d12d57aed44132208cd9308bfee11"))
+    ic(machoke_hash("Samples/0f9e27ec1ed021fd7375ca46f233c06b354d12d57aed44132208cd9308bfee11"))
