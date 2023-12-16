@@ -13,14 +13,14 @@ from icecream import ic
 
 ic.configureOutput(includeContext=True)
 
-def machoke_hash(sample) -> str:
 
+def machoke_hash(sample) -> str:
     __name__ = "machoke"
     # Path to the script you want to run
     script_path = 'Machoke.py'
 
     # Combining script path and parameters in a single command
-    command = ['python3', script_path] + sample
+    command = ['python3', script_path, sample]
 
     # Running the script with parameters and capturing the output
     result = subprocess.run(command, stdout=subprocess.PIPE, text=True)
@@ -30,14 +30,17 @@ def machoke_hash(sample) -> str:
 
     return output
 
+
 fuzzy_hashers = [ssdeep, tlsh, machoke_hash]
 i = 0
+
 
 def get_fuzz_and_time_of_hasher(hasher, file_handler):
     start_time = time.time()
     if hasher.__name__ == "machoke":
         fuzz = hasher(file_handler)
-    fuzz = hasher.hash(file_handler)
+    else:
+        fuzz = hasher.hash(file_handler)
     end_time = time.time()
     return fuzz, end_time - start_time
 
@@ -122,5 +125,5 @@ if __name__ == '__main__':
     #     init(family_path)
     #
 
-    #init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    print("Hello")
+    # init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
+    ic(machoke_hash("0f9e27ec1ed021fd7375ca46f233c06b354d12d57aed44132208cd9308bfee11"))

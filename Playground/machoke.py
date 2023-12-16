@@ -196,7 +196,7 @@ def main(args):
         else:
             print("%s is not a file"%file)
 
-    if args.recursive is not None and os.path.isdir(args.recursive):
+    if args.recursive != None and os.path.isdir(args.recursive):
         for root, directories, filenames in os.walk(args.recursive):
             for filename in filenames:
                 files.append(os.path.join(root, filename))
@@ -268,3 +268,4 @@ if __name__ == "__main__":
         exit(1)
     __args__ = __parser__.parse_args()
     main(__args__)
+
