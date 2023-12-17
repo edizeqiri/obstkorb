@@ -3,8 +3,10 @@ import os
 import time
 import subprocess
 import requests
-#import ssdeep
-#import tlsh
+import ssdeep
+import tlsh
+import pyimpfuzzy
+
 import Mongo_Connector as mongo
 import json
 import sys
@@ -14,7 +16,6 @@ ic.configureOutput(includeContext=True)
 
 
 def machoke_hash(sample) -> str:
-    __name__ = "machoke"
     # Path to the script you want to run
     script_path = '../Playground/machoke.py'
 
@@ -22,24 +23,22 @@ def machoke_hash(sample) -> str:
     command = ['python3', script_path, sample]
 
     # Running the script with parameters and capturing the output
+    start_time = time.time()
     result = subprocess.run(command, stdout=subprocess.PIPE, text=True)
-
+    end_time = time.time()
     # The output is stored in result.stdout
     output = result.stdout
 
-    return output
+    return output, end_time - start_time
 
 
-fuzzy_hashers = [machoke_hash]
+fuzzy_hashers = [tlsh, ssdeep]
 i = 0
 
 
 def get_fuzz_and_time_of_hasher(hasher, file_handler):
     start_time = time.time()
-    if hasher.__name__ == "machoke":
-        fuzz = hasher(file_handler)
-    else:
-        fuzz = hasher.hash(file_handler)
+    fuzz = hasher.hash(file_handler)
     end_time = time.time()
     return fuzz, end_time - start_time
 
@@ -47,6 +46,13 @@ def get_fuzz_and_time_of_hasher(hasher, file_handler):
 def get_hash(hasher, sha, client):
     result = mongo.find(client, {hasher: {"SHA256": sha}})
     return result.family
+
+
+def impfuzz(file_):
+    start_time = time.time()
+    fuzz = pyimpfuzzy.get_impfuzzy(file_)
+    end_time = time.time()
+    return fuzz, end_time - start_time
 
 
 def insert_family_hashes(family_path, client, schema):
@@ -67,10 +73,15 @@ def insert_family_hashes(family_path, client, schema):
                      "family": family_path.split("/")[-1],
                      "SHA256": hashlib.sha256(file_handler).hexdigest(),
                      "file_size": os.path.getsize(file_),
-                     "ssdeep": "ssdeep hash",
-                     "tlsh": "TLSH hash",
-                     "machoc": "Machoc hash"}
+                    }
 
+            # Machoke
+            #m_fuzz, m_time = machoke_hash(file_)
+            #entry["machoke"] = {"machoke": m_fuzz, "hash_time": m_time}
+
+            # ImpFuzz
+            #i_fuzz, i_time = impfuzz(file_)
+            #entry["impfuzzy"] = {"impfuzzy": i_fuzz, "hash_time": i_time}
             # Get fuzzy hashes and time
             for hasher in fuzzy_hashers:
                 fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, file_handler)
@@ -84,9 +95,12 @@ def insert_family_hashes(family_path, client, schema):
         except Exception as e:
             print(f"This is some gaga: {file_}")
             print(f"The Exception is: {e}")
+            if e == "DOS Header magic not found.":
+                continue
             exception_counter += 1
             if exception_counter > 100:
                 os.sysexit(-1)
+                print("Fix your code!")
             else:
                 continue
 
@@ -124,5 +138,7 @@ if __name__ == '__main__':
     #     init(family_path)
     #
 
-    # init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    ic(machoke_hash("Samples/0f9e27ec1ed021fd7375ca46f233c06b354d12d57aed44132208cd9308bfee11"))
+    init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "impa")
+
+
+    #init("/Volumes/vx", "impa")
