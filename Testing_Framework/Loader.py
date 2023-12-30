@@ -57,17 +57,12 @@ def get_fuzz_and_time_of_hasher(hasher, file_handler):
     end_time = time.time()
     return fuzz, end_time - start_time
 
-
-def get_hash(hasher, sha, client):
-    result = mongo.find(client, {hasher: {"SHA256": sha}})
-    return result.family
-
-
 def impfuzz(file_):
     start_time = time.time()
     fuzz = pyimpfuzzy.get_impfuzzy(file_)
     end_time = time.time()
     return fuzz, end_time - start_time
+
 def process_file(file_path, family_path, client, schema):
     if file_path.endswith(".7z"):
         return
@@ -83,8 +78,14 @@ def process_file(file_path, family_path, client, schema):
                 # ... other hash operations ...
             }
 
-            fuzzy_hash, hash_time = strings(path)
-            entry["strings"] = {"strings": fuzzy_hash, "hash_time": hash_time}
+            # Strings
+            #fuzzy_hash, hash_time = strings(path)
+            #entry["strings"] = {"strings": fuzzy_hash, "hash_time": hash_time}
+
+            # Machoke
+            m_fuzz, m_time = machoke_hash(path)
+            entry["machoke"] = {"machoke": m_fuzz, "hash_time": m_time}
+
             file_handler.close()
             # Insert into database (modify as needed)
             mongo.upsert_sample(client,schema,entry)
@@ -192,6 +193,6 @@ if __name__ == '__main__':
     #     init(family_path)
     #
 
-    init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-
+    #init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
+    machoke_hash("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore/ABINIT/abinit_8.0.8-goolf-1.7.20")
     #init("/Volumes/vx", "malware")
