@@ -33,12 +33,37 @@ def insert_one_sample(client, coll, data):
     return True
 
 
-def find(client, query):
+def find(client,schema ,query):
     """
     Find data in collection
     """
     if client["families"] not in client.list_collection_names():
         print("Collection does not exist! Run init() first")
         return False
-    return client["families"].find(query)
+    return client[schema].find(query)
+
+def upsert_sample(client, schema, entry):
+    """
+    Inserts a new document or updates an existing one based on the 'SHA256' field.
+
+    :param client: MongoClient instance
+    :param schema: The database and collection name in the format 'db.collection'
+    :param entry: The document to insert or update
+    """
+
+    collection = client[schema]
+
+    sha256 = entry.get('SHA256')
+    if not sha256:
+        raise ValueError("Entry does not contain 'SHA256' field")
+
+    # Update the document with the given SHA256, or insert it if it doesn't exist
+    result = collection.update_one(
+        {'SHA256': sha256},
+        {'$set': entry},
+        upsert=True
+    )
+
+    return result
+
 
