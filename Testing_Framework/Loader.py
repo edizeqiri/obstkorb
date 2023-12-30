@@ -183,16 +183,5 @@ def init(family_path, schema):
 
 
 if __name__ == '__main__':
-    # if len(sys.argv) < 3:
-    #     print("Usage: python3 Loader.py <path_to_families> <True/False> for init phase") #make this a flag
-    #     exit(1)
-    #
-    #
-    # family_path = sys.argv[1]
-    # if sys.argv[2] == "True":
-    #     init(family_path)
-    #
-
     #init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    machoke_hash("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore/ABINIT/abinit_8.0.8-goolf-1.7.20")
     #init("/Volumes/vx", "malware")
