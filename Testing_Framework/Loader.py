@@ -4,10 +4,8 @@ import os
 import time
 import subprocess
 import requests
-import ssdeep
-import tlsh
-import pyimpfuzzy
-
+#import ssdeep
+#import tlsh
 import Mongo_Connector as mongo
 import json
 import sys
@@ -15,22 +13,6 @@ from icecream import ic
 
 ic.configureOutput(includeContext=True)
 
-
-def machoke_hash(sample) -> str:
-    # Path to the script you want to run
-    script_path = '../Playground/machoke.py'
-
-    # Combining script path and parameters in a single command
-    command = ['python3', script_path, sample]
-
-    # Running the script with parameters and capturing the output
-    start_time = time.time()
-    result = subprocess.run(command, stdout=subprocess.PIPE, text=True)
-    end_time = time.time()
-    # The output is stored in result.stdout
-    output = result.stdout
-
-    return output, end_time - start_time
 
 def strings(sample):
 
@@ -106,6 +88,28 @@ def insert_family_hashes_conc(family_path, client, schema):
             pass  # You can process results here if needed
 
 
+def machoke_hash(sample) -> str:
+    script_path = '../Playground/machoke.py'
+    command = ['python', script_path, sample, "-v"]
+    try:
+        start_time = time.time()
+        result = subprocess.run(command, stdout=subprocess.PIPE, text=True, check=True)
+        end_time = time.time()
+        output = result.stdout
+    except subprocess.CalledProcessError as e:
+        output = f"Error: {e}"
+    return output, end_time - start_time
+
+def insert_family_hashes_proc(family_path, client, schema):
+    file_paths = [f for f in os.listdir(family_path) if not f.startswith(".")]
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        tasks = [executor.submit(process_file, file_path, family_path, client, schema) for file_path in file_paths]
+        for future in concurrent.futures.as_completed(tasks):
+            pass  # Process results here if needed
+
+# Call insert_family_hashes_conc with appropriate arguments
+
+
 def insert_family_hashes(family_path, client, schema):
     global i
     exception_counter = 0
@@ -135,12 +139,13 @@ def insert_family_hashes(family_path, client, schema):
             #entry["impfuzzy"] = {"impfuzzy": i_fuzz, "hash_time": i_time}
 
             # Strings
-            f_fuzz, f_time = strings(file_)
-            entry["strings"] = {"strings": f_fuzz, "hash_time": f_time}
+            #f_fuzz, f_time = strings(file_)
+            #entry["strings"] = {"strings": f_fuzz, "hash_time": f_time}
             # Get fuzzy hashes and time
-            for hasher in fuzzy_hashers:
-                fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, file_handler)
-                entry[hasher.__name__] = {hasher.__name__: fuzzy_hash, "hash_time": hash_time}
+            
+            #for hasher in fuzzy_hashers:
+            #    fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, file_handler)
+            #    entry[hasher.__name__] = {hasher.__name__: fuzzy_hash, "hash_time": hash_time}
             file_handler_.close()
             # Insert into db
 
@@ -194,5 +199,6 @@ if __name__ == '__main__':
     #
 
     #init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    machoke_hash("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore/ABINIT/abinit_8.0.8-goolf-1.7.20")
+    #init("E:\\Cloud\\Nextcloud\\Uni\\7. Semester\\Bachelors_Thesis\\scicore\\", "scicore")
+    machoke_hash("E:\\Cloud\\Nextcloud\\Uni\\7. Semester\\Bachelors_Thesis\\scicore\\ant\\ant_1_9_6-Java-1_7_0_75")
     #init("/Volumes/vx", "malware")
