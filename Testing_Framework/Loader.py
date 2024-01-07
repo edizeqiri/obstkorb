@@ -3,9 +3,13 @@ import hashlib
 import os
 import time
 import subprocess
+from itertools import combinations
+
 import requests
-#import ssdeep
-#import tlsh
+import tlsh
+import pandas as pd
+# import ssdeep
+# import tlsh
 import Mongo_Connector as mongo
 import json
 import sys
@@ -15,7 +19,6 @@ ic.configureOutput(includeContext=True)
 
 
 def strings(sample):
-
     # Combining script path and parameters in a single command
     command = ['strings', sample]
 
@@ -29,6 +32,7 @@ def strings(sample):
 
     return hash, end_time - start_time
 
+
 fuzzy_hashers = []
 i = 0
 
@@ -39,11 +43,6 @@ def get_fuzz_and_time_of_hasher(hasher, file_handler):
     end_time = time.time()
     return fuzz, end_time - start_time
 
-def impfuzz(file_):
-    start_time = time.time()
-    fuzz = pyimpfuzzy.get_impfuzzy(file_)
-    end_time = time.time()
-    return fuzz, end_time - start_time
 
 def process_file(file_path, family_path, client, schema):
     if file_path.endswith(".7z"):
@@ -61,17 +60,17 @@ def process_file(file_path, family_path, client, schema):
             }
 
             # Strings
-            #fuzzy_hash, hash_time = strings(path)
-            #entry["strings"] = {"strings": fuzzy_hash, "hash_time": hash_time}
+            fuzzy_hash, hash_time = strings(path)
+            entry["strings"] = {"strings": fuzzy_hash, "hash_time": hash_time}
 
             # Machoke
-            m_fuzz, m_time = machoke_hash(path)
-            entry["machoke"] = {"machoke": m_fuzz, "hash_time": m_time}
+            # m_fuzz, m_time = machoke_hash(path)
+            # entry["machoke"] = {"machoke": m_fuzz, "hash_time": m_time}
 
             file_handler.close()
             # Insert into database (modify as needed)
-            mongo.upsert_sample(client,schema,entry)
-            #mongo.insert_one_sample(client, schema, entry)
+            mongo.upsert_sample(client, schema, entry)
+            # mongo.insert_one_sample(client, schema, entry)
 
     except Exception as e:
         print(f"Error processing {path}: {e}")
@@ -100,6 +99,7 @@ def machoke_hash(sample) -> str:
         output = f"Error: {e}"
     return output, end_time - start_time
 
+
 def insert_family_hashes_proc(family_path, client, schema):
     file_paths = [f for f in os.listdir(family_path) if not f.startswith(".")]
     with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -107,8 +107,8 @@ def insert_family_hashes_proc(family_path, client, schema):
         for future in concurrent.futures.as_completed(tasks):
             pass  # Process results here if needed
 
-# Call insert_family_hashes_conc with appropriate arguments
 
+# Call insert_family_hashes_conc with appropriate arguments
 
 def insert_family_hashes(family_path, client, schema):
     global i
@@ -128,22 +128,22 @@ def insert_family_hashes(family_path, client, schema):
                      "family": family_path.split("/")[-1],
                      "SHA256": hashlib.sha256(file_handler).hexdigest(),
                      "file_size": os.path.getsize(file_),
-                    }
+                     }
 
             # Machoke
-            #m_fuzz, m_time = machoke_hash(file_)
-            #entry["machoke"] = {"machoke": m_fuzz, "hash_time": m_time}
+            # m_fuzz, m_time = machoke_hash(file_)
+            # entry["machoke"] = {"machoke": m_fuzz, "hash_time": m_time}
 
             # ImpFuzz
-            #i_fuzz, i_time = impfuzz(file_)
-            #entry["impfuzzy"] = {"impfuzzy": i_fuzz, "hash_time": i_time}
+            # i_fuzz, i_time = impfuzz(file_)
+            # entry["impfuzzy"] = {"impfuzzy": i_fuzz, "hash_time": i_time}
 
             # Strings
-            #f_fuzz, f_time = strings(file_)
-            #entry["strings"] = {"strings": f_fuzz, "hash_time": f_time}
+            # f_fuzz, f_time = strings(file_)
+            # entry["strings"] = {"strings": f_fuzz, "hash_time": f_time}
             # Get fuzzy hashes and time
-            
-            #for hasher in fuzzy_hashers:
+
+            # for hasher in fuzzy_hashers:
             #    fuzzy_hash, hash_time = get_fuzz_and_time_of_hasher(hasher, file_handler)
             #    entry[hasher.__name__] = {hasher.__name__: fuzzy_hash, "hash_time": hash_time}
             file_handler_.close()
@@ -172,6 +172,61 @@ def log_me(data):
         requests.post("https://ntfy.airfryer.rocks/dev", data=data)
 
 
+def get_tlsh_prediciton(sample, debug=False):
+    db = mongo.init("portainer", port=32768)
+    query = {"tlsh": {"$ne": "TNULL"}}
+    projection = {"family": 1, "tlsh": 1, "SHA256": 1, "_id": 0}
+
+    db_q = db["scicore"].find(query, projection)
+
+    df = pd.DataFrame(db_q)
+    df.dropna(subset=['tlsh'], inplace=True)
+    df['tlsh'] = df['tlsh'].apply(lambda x: x['tlsh'] if 'tlsh' in x and isinstance(x, dict) else x)
+    with open(sample, "rb") as file_handler:
+        file_content = file_handler.read()
+        hash_sample = tlsh.hash(file_content)
+        sha256 = hashlib.sha256(file_content).hexdigest()
+
+    min_diff = 10000
+    family = "No Match!"
+    for row in df.itertuples(index=False):
+        try:
+            if debug:
+                if row.SHA256 == sha256:
+                    continue
+            if row.tlsh == "TNULL":
+                continue
+            diff_score = tlsh.diff(hash_sample, row.tlsh)
+            if diff_score < min_diff and diff_score < 150:
+                min_diff = diff_score
+                family = row.family
+        except Exception as e:
+            print(f"Error processing row: {e}")
+    ic(min_diff)
+    return family
+    """def process_chunk(chunk):
+        min = 10000
+        for row1, row2 in combinations(chunk.itertuples(index=False), 2):
+            try:
+                diff_score = tlsh.diff(row1.strings, row2.strings)
+                if diff_score < min:
+                    min = diff_score
+            except Exception as e:
+                print(f"Error processing row: {e}")
+                continue
+        return min
+
+    # Initialize an empty list to store all results
+    all_results = []
+
+    # Iterate over the DataFrame in chunks
+    for start in range(0, len(df), 100):
+        end = start + 100
+        chunk = df.iloc[start:end]
+        all_results.extend(process_chunk(chunk))
+    return min(all_results)"""
+
+
 def init(family_path, schema):
     db = mongo.init("portainer", port=32768)
     log_me("Starting init phase")
@@ -181,24 +236,18 @@ def init(family_path, schema):
             continue
         if i % 10 == 0:
             log_me(f"{family} is being processed. {i}/{len(families)}")
-        insert_family_hashes_conc((family_path + "/" + family).replace("/", os.sep), db, schema)
+        insert_family_hashes((family_path + "/" + family).replace("/", os.sep), db, schema)
 
     log_me(f"Finished processing {len(family_path)} families")
     print("We have {} Schemas in the database".format(len(db.list_collection_names())))
 
 
 if __name__ == '__main__':
-    # if len(sys.argv) < 3:
-    #     print("Usage: python3 Loader.py <path_to_families> <True/False> for init phase") #make this a flag
-    #     exit(1)
-    #
-    #
-    # family_path = sys.argv[1]
-    # if sys.argv[2] == "True":
-    #     init(family_path)
-    #
-
-    #init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    #init("E:\\Cloud\\Nextcloud\\Uni\\7. Semester\\Bachelors_Thesis\\scicore\\", "scicore")
-    machoke_hash("E:\\Cloud\\Nextcloud\\Uni\\7. Semester\\Bachelors_Thesis\\scicore\\ant\\ant_1_9_6-Java-1_7_0_75")
-    #init("/Volumes/vx", "malware")
+    # init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
+    # init("E:\\Cloud\\Nextcloud\\Uni\\7. Semester\\Bachelors_Thesis\\scicore\\", "scicore")
+    # init("/Volumes/vx", "malware")
+    debug = True
+    start = time.time()
+    path = "/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore/ABySS/abyss-todot_2.0.2-goolf-1.7.20"
+    ic(get_tlsh_prediciton(path, debug))
+    print(f"Time elapsed: {time.time() - start} seconds")

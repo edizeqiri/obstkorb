@@ -37,9 +37,9 @@ def find(client,schema ,query):
     """
     Find data in collection
     """
-    if client["families"] not in client.list_collection_names():
+    """if client["families"] not in client.list_collection_names():
         print("Collection does not exist! Run init() first")
-        return False
+        return False"""
     return client[schema].find(query)
 
 def upsert_sample(client, schema, entry):
