@@ -229,3 +229,4 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 .DS_Store
+Testing_Framework/tlsh_results.csv
