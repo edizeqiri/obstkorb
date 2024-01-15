@@ -67,17 +67,6 @@ def process_file(file_path, family_path, client, schema):
         print(f"Error processing {path}: {e}")
 
 
-def insert_family_hashes_conc(family_path, client, schema):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        file_paths = [f for f in os.listdir(family_path) if not f.startswith(".")]
-        # Create a list of tasks for the executor
-        tasks = [executor.submit(process_file, file_path, family_path, client, schema) for file_path in file_paths]
-
-        # Wait for all tasks to complete (optional, if you need to process results)
-        for future in concurrent.futures.as_completed(tasks):
-            pass  # You can process results here if needed
-
-
 def machoke_hash(sample) -> str:
     script_path = '../Playground/machoke.py'
     command = ['python', script_path, sample, "-v"]
@@ -97,6 +86,7 @@ def insert_family_hashes_proc(family_path, client, schema):
         tasks = [executor.submit(process_file, file_path, family_path, client, schema) for file_path in file_paths]
         for future in concurrent.futures.as_completed(tasks):
             pass  # Process results here if needed
+
 
 def insert_family_hashes(family_path, client, schema):
     global i
@@ -181,5 +171,4 @@ if __name__ == '__main__':
     debug = True
     start = time.time()
     path = "/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore/ABySS/abyss-todot_2.0.2-goolf-1.7.20"
-    ic(get_tlsh_prediciton(path, debug))
     print(f"Time elapsed: {time.time() - start} seconds")
