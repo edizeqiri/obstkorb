@@ -1,23 +1,20 @@
 import concurrent.futures
 import hashlib
 import os
-import time
 import subprocess
-from itertools import combinations
+import time
 
 import requests
 import tlsh
-import pandas as pd
+from icecream import ic
+
+import MACHOKE
 # import ssdeep
 # import tlsh
 import Mongo_Connector as mongo
-import json
-import sys
-from icecream import ic
-import MACHOKE
 import SSDEEP
-import TLSH
 import STRINGS
+import TLSH
 
 ic.configureOutput(includeContext=True)
 
@@ -65,20 +62,6 @@ def process_file(file_path, family_path, client, schema):
 
     except Exception as e:
         print(f"Error processing {path}: {e}")
-
-
-def machoke_hash(sample) -> str:
-    script_path = '../Playground/machoke.py'
-    command = ['python', script_path, sample, "-v"]
-    try:
-        start_time = time.time()
-        result = subprocess.run(command, stdout=subprocess.PIPE, text=True, check=True)
-        end_time = time.time()
-        output = result.stdout
-    except subprocess.CalledProcessError as e:
-        output = f"Error: {e}"
-    return output, end_time - start_time
-
 
 def insert_family_hashes_proc(family_path, client, schema):
     file_paths = [f for f in os.listdir(family_path) if not f.startswith(".")]
@@ -161,13 +144,10 @@ def init(family_path, schema):
         insert_family_hashes((family_path + "/" + family).replace("/", os.sep), db, schema)
 
     log_me(f"Finished processing {len(family_path)} families")
-    print("We have {} Schemas in the database".format(len(db.list_collection_names())))
+    print("We have {} families in the database".format(len(db[schema].distinct("family"))))
 
 
 if __name__ == '__main__':
-    # init("/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore", "scicore")
-    # init("E:\\Cloud\\Nextcloud\\Uni\\7. Semester\\Bachelors_Thesis\\scicore\\", "scicore")
-    # init("/Volumes/vx", "malware")
     debug = True
     start = time.time()
     path = "/Users/edi/Nextcloud/Uni/7. Semester/Bachelors_Thesis/scicore/ABySS/abyss-todot_2.0.2-goolf-1.7.20"
