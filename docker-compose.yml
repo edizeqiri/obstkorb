@@ -1,0 +1,10 @@
+version: '3.8'
+name: obstkorb
+services:
+  dev:
+    build: .
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8888:8888"
+    command: ./start.sh
