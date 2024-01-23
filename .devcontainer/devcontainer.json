@@ -14,5 +14,7 @@
         // Add other extensions here
     ],
     "workspaceFolder": "/usr/src/app",
+    "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/usr/src/app",
+
     "remoteUser": "root"
 }
