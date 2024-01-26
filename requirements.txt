@@ -11,3 +11,4 @@ beautifulsoup4
 pyimpfuzzy
 pandas
 matplotlib
+scikit-learn

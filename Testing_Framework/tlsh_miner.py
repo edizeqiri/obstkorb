@@ -31,6 +31,7 @@ with open(scicore, 'r') as file:
 scicore = pd.DataFrame(data)
 
 scicore = scicore.sample(int(size), replace=True)
+print(len(scicore))
 scicore["scicore"] = True
 
 malware_concat = pd.concat([malware_filtered, scicore])
@@ -71,6 +72,7 @@ def subresult(frame, numi):
         score = 100000
         for j in range(len(numi)):
             if frame[i][3] == numi[j][3]:
+                print(f"{j}: same file")
                 continue
             try:
                 a = get_tlsh_score(frame[i][0])
@@ -88,8 +90,8 @@ def subresult(frame, numi):
                 min_score = score
                 winner = [frame[i][1], numi[j][1], frame[i][2], numi[j][2], score]
         local_result.append(winner)
+        
     return local_result
-
 
 def tlsh_score(df, col="tlsh"):
     numi = df[[col, 'family', 'scicore', 'SHA256']].to_numpy()
@@ -99,22 +101,22 @@ def tlsh_score(df, col="tlsh"):
     results = []
     completed_batches = 0
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    """with concurrent.futures.ProcessPoolExecutor() as executor:
         future_results = [executor.submit(subresult, numi[i:i + batch], numi) for i in range(0, len(numi), batch)]
         for future in concurrent.futures.as_completed(future_results):
             try:
                 results.extend(future.result())
                 ic(len(results))
             except Exception as e:
-                print(f"Operation failed: {e}")
+                print(f"Operation failed: {e}")"""
 
-    """for i in range(0, len(numi), batch):
+    for i in range(0, len(numi), batch):
         results.extend(subresult(numi[i:i + batch], numi))
         completed_batches += 1
         print(f"Completed {completed_batches} of {total_batches} batches")
         print(f"Lenght of results: {len(results)}")
         print(results[-1])
-        break"""
+        break
     return results
 
 
@@ -122,5 +124,5 @@ results = tlsh_score(filtered_df)
 
 # save results to csv
 results_df = pd.DataFrame(results, columns=['Family 1', 'Family 2', 'Scicore 1', "Scicore 2", 'Diff Score'])
-results_df.to_csv("tlsh_results.csv")
+results_df.to_csv("test_tlsh_results.csv")
 print(results_df)
