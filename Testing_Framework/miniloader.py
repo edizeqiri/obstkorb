@@ -76,6 +76,10 @@ def process_file(file_path, family_path):
 
 def insert_family_hashes_proc(family_path):
     file_paths = [f for f in os.listdir(family_path) if not f.startswith(".")]
+    # sample either 2 or 1% of the files, whichever is greater
+    sample_size = max(2, len(file_paths) // 100)
+    file_paths = file_paths[:sample_size]
+    
     results = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
         tasks = [executor.submit(process_file, file_path, family_path) for file_path in file_paths]

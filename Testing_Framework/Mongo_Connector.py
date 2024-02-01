@@ -65,5 +65,3 @@ def upsert_sample(client, schema, entry):
     )
 
     return result
-
-
